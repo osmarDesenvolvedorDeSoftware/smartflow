@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Flow - Painel Administrativo</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="css/styles.css?v=3">
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <main id="login-screen" class="screen active">
+        <div class="login-card glass">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-nfc-symbol"></i>
+                </div>
+                <h1>Smart Flow</h1>
+                <p>Entre no seu painel administrativo</p>
+            </div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-doc">Documento (CPF ou CNPJ)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-id-card input-icon"></i>
+                        <input type="text" id="login-doc" placeholder="Digite apenas números" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="login-pwd">Senha</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="login-pwd" placeholder="Sua senha secreta" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div id="login-error" class="error-message hidden">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="error-text">Documento ou senha inválidos.</span>
+                </div>
+
+                <button type="submit" class="btn-primary ripple-btn" id="login-submit">
+                    <span>Acessar Painel</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- TELA DO PAINEL -->
+    <div id="dashboard-screen" class="screen">
+        <!-- Header -->
+        <header class="glass">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="fa-solid fa-nfc-directional text-neon"></i>
+                    <span class="logo">Smart Flow</span>
+                </div>
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="user-greeting">Olá, bem-vindo</span>
+                        <span id="user-establishment-name" class="establishment-name">Carregando...</span>
+                    </div>
+                    <button id="btn-logout" class="btn-logout" title="Sair do Sistema">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-container">
+            <!-- KPIs (Resumo simples) -->
+            <section class="metrics-grid">
+                <div class="metric-card glass">
+                    <div class="metric-icon bg-cyan">
+                        <i class="fa-solid fa-tablet-screen-button"></i>
+                    </div>
+                    <div class="metric-data">
+                        <h3 id="stat-total-plates">0</h3>
+                        <p>Plaquinhas ativas</p>
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-icon bg-purple">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                    </div>
+                    <div class="metric-data">
+                        <h3 id="stat-total-clicks">0</h3>
+                        <p>Acessos totais</p>
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-icon bg-emerald">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="metric-data">
+                        <h3 id="stat-today-clicks">0</h3>
+                        <p>Acessos hoje</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gerenciador de Dispositivos -->
+            <section class="plates-section">
+                <div class="section-header">
+                        <h2>Minhas plaquinhas</h2>
+                        <p>Veja qual plaquinha é qual, troque os destinos e teste os links antes de usar.</p>
+                </div>
+
+                <div id="plates-grid" class="plates-grid">
+                    <!-- Cards de dispositivos serão gerados dinamicamente via JS -->
+                    <div class="loading-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Buscando suas plaquinhas...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gráficos -->
+            <section class="charts-grid">
+                <div class="chart-card glass chart-main">
+                    <div class="chart-header">
+                        <h2>Acessos da semana</h2>
+                        <span class="badge">Últimos 7 dias</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="clicksHistoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass chart-side">
+                    <div class="chart-header">
+                        <h2>Para onde os clientes foram</h2>
+                        <span class="badge">Destinos</span>
+                    </div>
+                    <div class="chart-wrapper-doughnut">
+                        <canvas id="clicksDistributionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- TELA DO SUPERADMIN -->
+    <div id="superadmin-screen" class="screen">
+        <!-- Header -->
+        <header class="glass">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="fa-solid fa-nfc-symbol text-neon"></i>
+                    <span class="logo">Smart Flow - SuperAdmin</span>
+                </div>
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="user-greeting">Administrador</span>
+                        <span class="establishment-name">Controle do Sistema</span>
+                    </div>
+                    <button id="btn-logout-super" class="btn-logout" title="Sair do Sistema">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-container">
+            <!-- Grid com cadastro, vínculo e bloqueio -->
+            <div class="superadmin-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px; align-items: start;">
+
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- Card 1: Formulário de Cadastro -->
+                    <section class="glass superadmin-card" style="padding: 24px; border-radius: 16px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: white;"><i class="fa-solid fa-user-plus" style="color: #32bcad; margin-right: 8px;"></i> Cadastrar Comerciante</h2>
+                            <p style="font-size: 13px; color: #a1a1aa;">Crie o acesso do comerciante e vincule um dispositivo inicial, se houver</p>
+                        </div>
+                        <form id="form-cadastro-comerciante" class="form-container" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="super-documento" style="font-size: 13px; color: #a1a1aa;">CPF ou CNPJ do Comerciante</label>
+                                <input type="text" id="super-documento" placeholder="Apenas números" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="super-estabelecimento" style="font-size: 13px; color: #a1a1aa;">Nome do Estabelecimento</label>
+                                <input type="text" id="super-estabelecimento" placeholder="Ex: Barbearia do Pedro" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="super-senha" style="font-size: 13px; color: #a1a1aa;">Senha</label>
+                                <input type="password" id="super-senha" placeholder="Senha do painel do comerciante" required style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="super-placa" style="font-size: 13px; color: #a1a1aa;">ID físico do dispositivo inicial (Opcional)</label>
+                                <input type="number" id="super-placa" placeholder="Ex: 1001" autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="super-tipo-dispositivo" style="font-size: 13px; color: #a1a1aa;">Tipo do dispositivo inicial (Opcional)</label>
+                                <select id="super-tipo-dispositivo" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                    <option value="">Não definido</option>
+                                    <option value="display">display</option>
+                                    <option value="cartao">cartao</option>
+                                    <option value="tag">tag</option>
+                                    <option value="pulseira">pulseira</option>
+                                    <option value="outro">outro</option>
+                                </select>
+                            </div>
+                            <div id="cadastro-feedback" style="display: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500;"></div>
+                            <button type="submit" class="btn-primary ripple-btn" id="btn-save-comerciante" style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span>Cadastrar Comerciante</span>
+                                <i class="fa-solid fa-save"></i>
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- Card 2: Vincular dispositivo -->
+                    <section class="glass superadmin-card" style="padding: 24px; border-radius: 16px;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: white;"><i class="fa-solid fa-link" style="color: #32bcad; margin-right: 8px;"></i> Adicionar Dispositivo</h2>
+                            <p style="font-size: 13px; color: #a1a1aa;">Vincule outro ID físico a um comerciante já cadastrado</p>
+                        </div>
+                        <form id="form-vincular-dispositivo" class="form-container" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="vinculo-documento" style="font-size: 13px; color: #a1a1aa;">Documento do comerciante</label>
+                                <input type="text" id="vinculo-documento" placeholder="CPF ou CNPJ" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="vinculo-placa" style="font-size: 13px; color: #a1a1aa;">ID físico do dispositivo</label>
+                                <input type="number" id="vinculo-placa" placeholder="Ex: 1002" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label for="vinculo-tipo-dispositivo" style="font-size: 13px; color: #a1a1aa;">Tipo do dispositivo (Opcional)</label>
+                                <select id="vinculo-tipo-dispositivo" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                    <option value="">Não definido</option>
+                                    <option value="display">display</option>
+                                    <option value="cartao">cartao</option>
+                                    <option value="tag">tag</option>
+                                    <option value="pulseira">pulseira</option>
+                                    <option value="outro">outro</option>
+                                </select>
+                            </div>
+                            <div id="vinculo-feedback" style="display: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500;"></div>
+                            <button type="submit" class="btn-primary ripple-btn" id="btn-vincular-dispositivo" style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span>Adicionar Dispositivo</span>
+                                <i class="fa-solid fa-link"></i>
+                            </button>
+                        </form>
+                    </section>
+                </div>
+
+                <!-- Card 3: Controle Financeiro e Bloqueio -->
+                <section class="glass superadmin-card" style="padding: 24px; border-radius: 16px;">
+                    <div class="card-header" style="margin-bottom: 20px;">
+                        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: white;"><i class="fa-solid fa-shield-halved" style="color: #32bcad; margin-right: 8px;"></i> Controle Financeiro / Dispositivos</h2>
+                        <p style="font-size: 13px; color: #a1a1aa;">Ative ou suspenda os dispositivos físicos dos comerciantes em tempo real</p>
+                    </div>
+
+                    <div class="table-wrapper" style="overflow-x: auto; background: rgba(255,255,255,0.01); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                                    <th style="padding: 12px 16px; color: #a1a1aa; font-weight: 600;">Estabelecimento</th>
+                                    <th style="padding: 12px 16px; color: #a1a1aa; font-weight: 600;">Documento</th>
+                                    <th style="padding: 12px 16px; color: #a1a1aa; font-weight: 600;">Dispositivos vinculados</th>
+                                    <th style="padding: 12px 16px; color: #a1a1aa; font-weight: 600; text-align: center;">Status Dispositivo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comerciantes-table-body">
+                                <tr>
+                                    <td colspan="4" style="padding: 30px; text-align: center; color: #a1a1aa;">
+                                        <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Carregando dados do sistema...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Principal -->
+    <script src="js/app.js?v=6"></script>
+</body>
+</html>
