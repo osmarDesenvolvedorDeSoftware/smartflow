@@ -683,13 +683,17 @@ def login(request_data: LoginRequest, db: Session = Depends(get_db)):
         and request_data.documento == superadmin_documento
         and request_data.senha == superadmin_senha
     ):
-        # Find any admin user
         admin_user = db.query(Usuario).filter(Usuario.is_admin == True).first()
         if not admin_user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Administrador não encontrado."
+            admin_user = Usuario(
+                documento=superadmin_documento,
+                senha=get_password_hash(superadmin_senha),
+                nome_estabelecimento="Administrador do Sistema",
+                is_admin=True
             )
+            db.add(admin_user)
+            db.commit()
+            db.refresh(admin_user)
         usuario = admin_user
     else:
         usuario = db.query(Usuario).filter(Usuario.documento == request_data.documento).first()
