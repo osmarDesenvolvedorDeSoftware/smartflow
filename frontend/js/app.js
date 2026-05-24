@@ -337,12 +337,12 @@ function renderCharts(stats) {
                 legend: {
                     display: false,
                     labels: {
-                        color: '#a1a1aa',
+                        color: '#475569',
                         font: { family: 'Outfit', size: 12 }
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(9, 9, 11, 0.95)',
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
                     bodyFont: { family: 'Outfit', size: 13 },
                     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -352,13 +352,13 @@ function renderCharts(stats) {
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                    ticks: { color: '#a1a1aa', font: { family: 'Outfit' } }
+                    grid: { color: 'rgba(15, 23, 42, 0.06)' },
+                    ticks: { color: '#475569', font: { family: 'Outfit' } }
                 },
                 y: {
-                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                    grid: { color: 'rgba(15, 23, 42, 0.06)' },
                     ticks: {
-                        color: '#a1a1aa',
+                        color: '#475569',
                         font: { family: 'Outfit' },
                         precision: 0
                     },
@@ -375,7 +375,7 @@ function renderCharts(stats) {
     // Se não houver cliques, exibe valores neutros mockados para visual não ficar quebrado
     const noClicks = totalFrente === 0 && totalVerso === 0;
     const doughnutData = noClicks ? [1, 1] : [totalFrente, totalVerso];
-    const doughnutColors = noClicks ? ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.03)'] : ['#06b6d4', '#8b5cf6'];
+    const doughnutColors = noClicks ? ['rgba(15, 23, 42, 0.08)', 'rgba(15, 23, 42, 0.04)'] : ['#0284c7', '#059669'];
     const doughnutLabels = noClicks ? ['Sem acessos na avaliação', 'Sem acessos no verso'] : ['Avaliação Google', 'Cardápio / WhatsApp / Pix'];
 
     clicksDistributionChart = new Chart(ctxDistribution, {
@@ -396,14 +396,14 @@ function renderCharts(stats) {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#a1a1aa',
+                        color: '#475569',
                         font: { family: 'Outfit', size: 12 },
                         padding: 16
                     }
                 },
                 tooltip: {
                     enabled: !noClicks,
-                    backgroundColor: 'rgba(9, 9, 11, 0.95)',
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     titleFont: { family: 'Outfit', size: 13 },
                     bodyFont: { family: 'Outfit', size: 13 },
                     borderColor: 'rgba(255, 255, 255, 0.1)',
