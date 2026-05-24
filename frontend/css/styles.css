@@ -1145,6 +1145,66 @@ body.modal-open {
     font-size: 12px;
 }
 
+.recording-links {
+    display: grid;
+    gap: 7px;
+    margin-top: 8px;
+}
+
+.recording-link-row {
+    display: grid;
+    grid-template-columns: 48px minmax(190px, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.82);
+}
+
+.recording-link-row span {
+    color: var(--text-primary) !important;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.recording-link-row code {
+    min-width: 0;
+    color: #0f766e;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-copy-link {
+    border: 1px solid rgba(14, 165, 233, 0.18);
+    border-radius: 7px;
+    background: rgba(14, 165, 233, 0.08);
+    color: #0369a1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 78px;
+    padding: 7px 9px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.btn-copy-link:hover {
+    background: rgba(14, 165, 233, 0.14);
+}
+
+.btn-copy-link.copied {
+    background: rgba(5, 150, 105, 0.12);
+    border-color: rgba(5, 150, 105, 0.22);
+    color: #047857;
+}
+
 .admin-status-row {
     grid-template-columns: auto auto auto;
     align-items: center;

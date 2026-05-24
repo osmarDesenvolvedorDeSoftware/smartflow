@@ -78,6 +78,27 @@ function formatAccessCount(value) {
     return count === 1 ? "1 acesso" : `${count} acessos`;
 }
 
+function recordingUrl(idPlaca, lado) {
+    return `${window.location.origin}/r/${idPlaca}/${lado}`;
+}
+
+async function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+}
+
 function showFeedback(element, message, type = "success") {
     element.style.display = "block";
     if (type === "success") {
@@ -884,12 +905,30 @@ function renderSuperTable(comerciantes) {
                 const nomeAmigavel = deviceDisplayName(placa);
                 const tipo = deviceTypeLabel(placa);
                 const status = placa.status_ativa ? "Ativo" : "Suspenso";
+                const frenteUrl = recordingUrl(placa.id_placa, "frente");
+                const versoUrl = recordingUrl(placa.id_placa, "verso");
                 return `
                     <div class="admin-device-row">
                         <strong>${escapeHtml(nomeAmigavel)}</strong>
                         <span>ID físico: #${placa.id_placa}</span>
                         <span>Tipo: ${escapeHtml(tipo)}</span>
                         <span>Status: ${status}</span>
+                        <div class="recording-links">
+                            <div class="recording-link-row">
+                                <span>Frente</span>
+                                <code>${escapeHtml(frenteUrl)}</code>
+                                <button type="button" class="btn-copy-link" onclick="copyRecordingLink('${escapeHtml(frenteUrl)}', this)">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                            <div class="recording-link-row">
+                                <span>Verso</span>
+                                <code>${escapeHtml(versoUrl)}</code>
+                                <button type="button" class="btn-copy-link" onclick="copyRecordingLink('${escapeHtml(versoUrl)}', this)">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join("");
@@ -946,6 +985,21 @@ window.togglePlateStatus = async function(idPlaca, statusAtiva) {
     } catch (err) {
         alert(err.message);
         loadSuperAdminData();
+    }
+};
+
+window.copyRecordingLink = async function(url, button) {
+    const originalHtml = button.innerHTML;
+    try {
+        await copyTextToClipboard(url);
+        button.classList.add("copied");
+        button.innerHTML = `<i class="fa-solid fa-circle-check"></i> Copiado`;
+        setTimeout(() => {
+            button.classList.remove("copied");
+            button.innerHTML = originalHtml;
+        }, 1800);
+    } catch (err) {
+        alert("Não consegui copiar automaticamente. Selecione o link e copie manualmente.");
     }
 };
 
