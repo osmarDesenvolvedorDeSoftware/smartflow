@@ -768,20 +768,6 @@ def atualizar_placa(id_placa: int, payload: PlacaUpdate, current_user: Usuario =
     db.refresh(placa)
     return placa
 
-@app.delete("/api/admin/placas/{id_placa}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_placa(id_placa: int, current_user: Usuario = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Remove um dispositivo do comerciante logado e todo o histórico de cliques."""
-    placa = db.query(Placa).filter(Placa.id_placa == id_placa, Placa.dono_documento == current_user.documento).first()
-    if not placa:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dispositivo não encontrado ou não pertence ao seu estabelecimento."
-        )
-
-    db.delete(placa)
-    db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
 @app.get("/api/admin/dashboard", response_model=DashboardStats)
 def obter_dados_dashboard(current_user: Usuario = Depends(get_current_user), db: Session = Depends(get_db)):
     """Retorna estatísticas compiladas de cliques dos dispositivos do comerciante logado nos últimos 7 dias."""

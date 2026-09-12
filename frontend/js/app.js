@@ -504,9 +504,6 @@ function renderPlatesGrid(dispositivos) {
                 <button type="button" class="btn-test btn-configure">
                     <i class="fa-solid fa-pen-to-square"></i> Editar destinos
                 </button>
-                <button type="button" class="btn-test btn-delete-plate" onclick="deleteOwnDevice(${dispositivo.id_placa})">
-                    <i class="fa-solid fa-trash"></i> Excluir
-                </button>
             </div>
         `;
 
@@ -838,33 +835,6 @@ async function handleSavePlate(e, idPlaca, isAdmin) {
         saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar alterações`;
     }
 }
-
-// Excluir um dispositivo do comerciante logado
-window.deleteOwnDevice = async function(idPlaca) {
-    const token = localStorage.getItem("nfc_token");
-    if (!token) return;
-
-    const confirma = confirm(`Excluir o dispositivo #${idPlaca}?\nO histórico de cliques também será apagado. Essa ação não pode ser desfeita.`);
-    if (!confirma) return;
-
-    try {
-        const response = await fetch(`${API_URL}/api/admin/placas/${idPlaca}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            throw new Error(data.detail || "Erro ao excluir o dispositivo.");
-        }
-
-        loadDashboardData();
-    } catch (err) {
-        alert(err.message);
-    }
-};
 
 // Funções globais de toggle para elementos interativos dos dispositivos
 window.toggleVersoMode = function(idPlaca) {
