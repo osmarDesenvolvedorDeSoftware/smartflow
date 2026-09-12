@@ -158,7 +158,7 @@ class TestNfcConnectIntegration(unittest.TestCase):
         print("Generating Pix on suspended plate...")
         r_gen = requests.post(f"{self.BASE_URL}/api/public/placa/1001/gerar-pix", json={"valor": 10.00})
         self.assertEqual(r_gen.status_code, 403)
-        self.assertIn("suspensa", r_gen.json()["detail"])
+        self.assertIn("suspenso", r_gen.json()["detail"])
 
         # Reactive plate 1001
         print("Reactivating plate 1001...")

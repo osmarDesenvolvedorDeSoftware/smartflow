@@ -711,6 +711,55 @@ header .logo small {
     color: var(--text-primary);
 }
 
+.btn-delete-plate,
+.btn-edit-plate {
+    border-radius: 7px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 800;
+    transition: var(--transition-smooth);
+}
+
+.btn-delete-plate {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    color: #f87171;
+}
+
+.btn-delete-plate:hover {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fecaca;
+}
+
+.btn-edit-plate {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.22);
+    color: #a78bfa;
+}
+
+.btn-edit-plate:hover {
+    background: rgba(139, 92, 246, 0.16);
+    color: #ddd6fe;
+}
+
+.admin-device-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.plate-actions .btn-delete-plate {
+    width: 100%;
+    justify-content: center;
+}
+
 body.modal-open {
     overflow: hidden;
 }

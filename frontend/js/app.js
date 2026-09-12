@@ -6,6 +6,7 @@ const API_URL = "";
 let clicksHistoryChart = null;
 let clicksDistributionChart = null;
 let latestDashboardStats = null;
+let adminPlatesCache = [];
 const DEVICE_TYPES = ["display", "cartao", "tag", "pulseira", "outro"];
 
 function normalizeOptional(value) {
@@ -503,6 +504,9 @@ function renderPlatesGrid(dispositivos) {
                 <button type="button" class="btn-test btn-configure">
                     <i class="fa-solid fa-pen-to-square"></i> Editar destinos
                 </button>
+                <button type="button" class="btn-test btn-delete-plate" onclick="deleteOwnDevice(${dispositivo.id_placa})">
+                    <i class="fa-solid fa-trash"></i> Excluir
+                </button>
             </div>
         `;
 
@@ -672,7 +676,7 @@ function deviceConfigFormHtml(dispositivo) {
     `;
 }
 
-function openDeviceConfigModal(dispositivo) {
+function openDeviceConfigModal(dispositivo, isAdmin) {
     closeDeviceConfigModal();
 
     const modal = document.createElement("div");
@@ -703,7 +707,7 @@ function openDeviceConfigModal(dispositivo) {
     document.body.classList.add("modal-open");
 
     const form = modal.querySelector(".plate-form");
-    form.addEventListener("submit", (event) => handleSavePlate(event, dispositivo.id_placa));
+    form.addEventListener("submit", (event) => handleSavePlate(event, dispositivo.id_placa, !!isAdmin));
     modal.querySelector("input, select, textarea")?.focus();
 }
 
@@ -716,7 +720,7 @@ function closeDeviceConfigModal() {
 window.closeDeviceConfigModal = closeDeviceConfigModal;
 
 // Salvar personalização, links e configurações do Pix do dispositivo
-async function handleSavePlate(e, idPlaca) {
+async function handleSavePlate(e, idPlaca, isAdmin) {
     e.preventDefault();
     const token = localStorage.getItem("nfc_token");
     if (!token) return;
@@ -768,7 +772,8 @@ async function handleSavePlate(e, idPlaca) {
     saveBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...`;
 
     try {
-        const response = await fetch(`${API_URL}/api/admin/placas/${idPlaca}`, {
+        const endpoint = isAdmin ? `${API_URL}/api/admin/super/placas/${idPlaca}` : `${API_URL}/api/admin/placas/${idPlaca}`;
+        const response = await fetch(endpoint, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -801,6 +806,15 @@ async function handleSavePlate(e, idPlaca) {
 
         // Atualizar estatísticas do dashboard silenciosamente em segundo plano
         setTimeout(async () => {
+            if (isAdmin) {
+                saveBtn.classList.remove("success");
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar alterações`;
+                closeDeviceConfigModal();
+                loadSuperAdminData();
+                return;
+            }
+
             const statsResp = await fetch(`${API_URL}/api/admin/dashboard`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -824,6 +838,33 @@ async function handleSavePlate(e, idPlaca) {
         saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar alterações`;
     }
 }
+
+// Excluir um dispositivo do comerciante logado
+window.deleteOwnDevice = async function(idPlaca) {
+    const token = localStorage.getItem("nfc_token");
+    if (!token) return;
+
+    const confirma = confirm(`Excluir o dispositivo #${idPlaca}?\nO histórico de cliques também será apagado. Essa ação não pode ser desfeita.`);
+    if (!confirma) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/placas/${idPlaca}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.detail || "Erro ao excluir o dispositivo.");
+        }
+
+        loadDashboardData();
+    } catch (err) {
+        alert(err.message);
+    }
+};
 
 // Funções globais de toggle para elementos interativos dos dispositivos
 window.toggleVersoMode = function(idPlaca) {
@@ -874,11 +915,47 @@ async function loadSuperAdminData() {
             throw new Error(data.detail || "Erro ao obter lista de comerciantes.");
         }
 
+        adminPlatesCache = data.flatMap(comerciante => comerciante.placas || []);
         renderSuperTable(data);
     } catch (err) {
         console.error("Erro ao carregar dados do admin:", err);
     }
 }
+
+window.openAdminPlateModal = function(idPlaca) {
+    const placa = adminPlatesCache.find(p => p.id_placa === idPlaca);
+    if (!placa) {
+        alert("Dispositivo não encontrado. Recarregue a lista.");
+        return;
+    }
+    openDeviceConfigModal(placa, true);
+};
+
+window.deleteAdminPlate = async function(idPlaca) {
+    const token = localStorage.getItem("nfc_token");
+    if (!token) return;
+
+    const confirma = confirm(`Excluir o dispositivo #${idPlaca}?\nO histórico de cliques também será apagado. Essa ação não pode ser desfeita.`);
+    if (!confirma) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/super/placas/${idPlaca}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.detail || "Erro ao excluir o dispositivo.");
+        }
+
+        loadSuperAdminData();
+    } catch (err) {
+        alert(err.message);
+    }
+};
 
 function renderSuperTable(comerciantes) {
     const tbody = document.getElementById("comerciantes-table-body");
@@ -928,6 +1005,14 @@ function renderSuperTable(comerciantes) {
                                     <i class="fa-regular fa-copy"></i> Copiar
                                 </button>
                             </div>
+                        </div>
+                        <div class="admin-device-actions">
+                            <button type="button" class="btn-edit-plate" onclick="openAdminPlateModal(${placa.id_placa})">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </button>
+                            <button type="button" class="btn-delete-plate" onclick="deleteAdminPlate(${placa.id_placa})">
+                                <i class="fa-solid fa-trash"></i> Excluir
+                            </button>
                         </div>
                     </div>
                 `;
