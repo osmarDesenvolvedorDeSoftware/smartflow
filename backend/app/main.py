@@ -10,7 +10,7 @@ from .pix import generate_pix_string
 
 from .database import get_db, engine, Base
 from .models import Usuario, Placa, HistoricoClique
-from .schemas import LoginRequest, Token, PlacaResponse, PlacaUpdate, DashboardStats, ClickDaily, PlateStats, ComercianteCreate, PlacaStatusUpdate, PlacaVinculo, ComercianteResponse
+from .schemas import LoginRequest, Token, PlacaResponse, PlacaUpdate, DashboardStats, ClickDaily, PlateStats, ComercianteCreate, PlacaStatusUpdate, PlacaVinculo, ComercianteResponse, ClienteStatusUpdate
 from .auth import verify_password, create_access_token, get_current_user, get_password_hash
 
 # Cria as tabelas se elas não existirem (garantia adicional, embora tenhamos o init.sql)
