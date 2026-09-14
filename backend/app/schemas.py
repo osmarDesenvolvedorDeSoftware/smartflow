@@ -63,10 +63,14 @@ class ComercianteResponse(BaseModel):
     documento: str
     nome_estabelecimento: str
     is_admin: bool
+    ativo: bool
     placas: List[PlacaResponse]
 
     class Config:
         from_attributes = True
+
+class ClienteStatusUpdate(BaseModel):
+    ativo: bool = Field(..., description="Status ativo/inativo do cliente (login bloqueado quando inativo)")
 
 class ClickDaily(BaseModel):
     data: str

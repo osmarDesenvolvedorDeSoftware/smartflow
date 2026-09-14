@@ -716,6 +716,12 @@ def login(request_data: LoginRequest, db: Session = Depends(get_db)):
                 detail="Documento ou senha inválidos."
             )
 
+        if not usuario.ativo:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cliente inativo. Entre em contato com o suporte."
+            )
+
     # Cria token
     access_token = create_access_token(data={"sub": usuario.documento})
     return {
@@ -887,6 +893,26 @@ def super_listar_comerciantes(current_admin: Usuario = Depends(get_current_admin
     """Lista todos os comerciantes (usuários comuns) e seus respectivos dispositivos."""
     comerciantes = db.query(Usuario).filter(Usuario.is_admin == False).order_by(Usuario.nome_estabelecimento).all()
     return comerciantes
+
+@app.put("/api/admin/super/comerciantes/{documento}/status")
+def super_alterar_status_comerciante(documento: str, payload: ClienteStatusUpdate, current_admin: Usuario = Depends(get_current_admin), db: Session = Depends(get_db)):
+    """Ativa ou inativa o acesso ao painel de um comerciante (as placas continuam funcionando)."""
+    comerciante = db.query(Usuario).filter(Usuario.documento == documento).first()
+    if not comerciante:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Comerciante não encontrado."
+        )
+    if comerciante.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é possível inativar um administrador."
+        )
+
+    comerciante.ativo = payload.ativo
+    db.commit()
+    db.refresh(comerciante)
+    return comerciante
 
 @app.post("/api/admin/super/comerciantes", status_code=status.HTTP_201_CREATED)
 def super_criar_comerciante(payload: ComercianteCreate, current_admin: Usuario = Depends(get_current_admin), db: Session = Depends(get_db)):

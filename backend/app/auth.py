@@ -55,4 +55,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(Usuario).filter(Usuario.documento == documento).first()
     if user is None:
         raise credentials_exception
+    if not user.ativo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cliente inativo. Entre em contato com o suporte.",
+        )
     return user

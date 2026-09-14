@@ -711,6 +711,42 @@ header .logo small {
     color: var(--text-primary);
 }
 
+.btn-toggle-cliente {
+    border-radius: 7px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 800;
+    transition: var(--transition-smooth);
+}
+
+.btn-toggle-cliente.inativar {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    color: #f87171;
+}
+
+.btn-toggle-cliente.inativar:hover {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fecaca;
+}
+
+.btn-toggle-cliente.ativar {
+    background: rgba(50, 188, 173, 0.08);
+    border: 1px solid rgba(50, 188, 173, 0.22);
+    color: #5eead4;
+}
+
+.btn-toggle-cliente.ativar:hover {
+    background: rgba(50, 188, 173, 0.16);
+    color: #ccfbf1;
+}
+
 .btn-delete-plate,
 .btn-edit-plate {
     border-radius: 7px;

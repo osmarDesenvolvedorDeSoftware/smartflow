@@ -937,12 +937,22 @@ function renderSuperTable(comerciantes) {
     tbody.innerHTML = "";
 
     if (comerciantes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="padding: 24px; text-align: center; color: #a1a1aa;">Nenhum comerciante cadastrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="padding: 24px; text-align: center; color: #a1a1aa;">Nenhum comerciante cadastrado.</td></tr>`;
         return;
     }
 
     comerciantes.forEach(comerciante => {
         const tr = document.createElement("tr");
+
+        const clienteAtivo = comerciante.ativo !== false;
+        const clienteStatusHtml = `
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                <span style="font-weight: 700; font-size: 13px; color: ${clienteAtivo ? "#4ade80" : "#f87171"};">${clienteAtivo ? "Ativo" : "Inativo"}</span>
+                <button type="button" class="btn-toggle-cliente ${clienteAtivo ? "inativar" : "ativar"}" onclick="toggleClienteStatus('${comerciante.documento}', ${clienteAtivo}, this)">
+                    <i class="fa-solid ${clienteAtivo ? "fa-ban" : "fa-check"}"></i>
+                    ${clienteAtivo ? "Inativar" : "Ativar"}
+                </button>
+            </div>`;
 
         if (comerciante.placas.length === 0) {
             tr.innerHTML = `
@@ -950,6 +960,7 @@ function renderSuperTable(comerciantes) {
                 <td style="padding: 12px 16px; color: #a1a1aa;">${escapeHtml(comerciante.documento)}</td>
                 <td style="padding: 12px 16px; color: #71717a; font-style: italic;">Nenhum dispositivo</td>
                 <td style="padding: 12px 16px; text-align: center; color: #71717a;">-</td>
+                <td style="padding: 12px 16px; text-align: center;">${clienteStatusHtml}</td>
             `;
         } else {
             const dispositivosHtml = comerciante.placas.map(placa => {
@@ -1012,6 +1023,7 @@ function renderSuperTable(comerciantes) {
                 <td style="padding: 12px 16px; color: #a1a1aa;">${escapeHtml(comerciante.documento)}</td>
                 <td style="padding: 12px 16px; color: white;">${dispositivosHtml}</td>
                 <td style="padding: 12px 16px; text-align: center;">${statusHtml}</td>
+                <td style="padding: 12px 16px; text-align: center;">${clienteStatusHtml}</td>
             `;
         }
 
@@ -1043,6 +1055,45 @@ window.togglePlateStatus = async function(idPlaca, statusAtiva) {
         loadSuperAdminData();
     } catch (err) {
         alert(err.message);
+        loadSuperAdminData();
+    }
+};
+
+window.toggleClienteStatus = async function(documento, clienteAtivo, btn) {
+    const token = localStorage.getItem("nfc_token");
+    if (!token) return;
+
+    const aviso = clienteAtivo
+        ? "Inativar este cliente? Ele não conseguirá acessar o painel. As placas continuarão funcionando normalmente."
+        : "Ativar este cliente? Ele voltará a acessar o painel.";
+    if (!confirm(aviso)) return;
+
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Aguarde...`;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/super/comerciantes/${documento}/status`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ativo: !clienteAtivo
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.detail || "Erro ao alterar status do cliente.");
+        }
+
+        loadSuperAdminData();
+    } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
         loadSuperAdminData();
     }
 };

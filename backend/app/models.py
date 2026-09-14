@@ -10,6 +10,7 @@ class Usuario(Base):
     senha = Column(String(255), nullable=False)
     nome_estabelecimento = Column(String(100), nullable=False)
     is_admin = Column(Boolean, default=False, server_default="false", nullable=False)
+    ativo = Column(Boolean, default=True, server_default="true", nullable=False)
 
     placas = relationship("Placa", back_populates="dono", cascade="all, delete-orphan")
 
