@@ -91,3 +91,33 @@ class DashboardStats(BaseModel):
     verso_cliques: int
     historico_cliques_diarios: List[ClickDaily]
     placas_stats: List[PlateStats] = Field(default_factory=list)
+
+class InsightGrupo(BaseModel):
+    """Agrupamento de uma dimensão (unidade/local/responsável) com contagens."""
+    label: str
+    frente: int
+    verso: int
+    total: int
+
+class InsightDispositivo(BaseModel):
+    """Dispositivo com metadata e contagens no período analisado."""
+    id_placa: int
+    nome_exibicao: Optional[str] = None
+    loja_unidade: Optional[str] = None
+    local_uso: Optional[str] = None
+    responsavel: Optional[str] = None
+    frente: int
+    verso: int
+    total: int
+
+class InsightsResponse(BaseModel):
+    periodo_dias: Optional[int] = None
+    total_cliques: int
+    melhor_dispositivo: Optional[InsightDispositivo] = None
+    melhor_unidade: Optional[InsightGrupo] = None
+    melhor_local: Optional[InsightGrupo] = None
+    melhor_responsavel: Optional[InsightGrupo] = None
+    dispositivos: List[InsightDispositivo] = Field(default_factory=list)
+    unidades: List[InsightGrupo] = Field(default_factory=list)
+    locais: List[InsightGrupo] = Field(default_factory=list)
+    responsaveis: List[InsightGrupo] = Field(default_factory=list)

@@ -1,7 +1,10 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+import re
+from collections import Counter
+from fastapi import FastAPI, Depends, HTTPException, status, Request, Query
 from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, date
 from typing import List, Optional
@@ -10,7 +13,7 @@ from .pix import generate_pix_string
 
 from .database import get_db, engine, Base
 from .models import Usuario, Placa, HistoricoClique
-from .schemas import LoginRequest, Token, PlacaResponse, PlacaUpdate, DashboardStats, ClickDaily, PlateStats, ComercianteCreate, PlacaStatusUpdate, PlacaVinculo, ComercianteResponse, ClienteStatusUpdate
+from .schemas import LoginRequest, Token, PlacaResponse, PlacaUpdate, DashboardStats, ClickDaily, PlateStats, ComercianteCreate, PlacaStatusUpdate, PlacaVinculo, ComercianteResponse, ClienteStatusUpdate, InsightsResponse, InsightDispositivo, InsightGrupo
 from .auth import verify_password, create_access_token, get_current_user, get_password_hash
 
 # Cria as tabelas se elas não existirem (garantia adicional, embora tenhamos o init.sql)
@@ -884,6 +887,119 @@ def obter_dados_dashboard(current_user: Usuario = Depends(get_current_user), db:
         verso_cliques=verso_cliques,
         historico_cliques_diarios=historico_cliques_diarios,
         placas_stats=placas_stats
+    )
+
+# ==================== INSIGHTS (ANÁLISES) ====================
+
+def _normalizar_dimensao(raw: Optional[str]) -> Optional[str]:
+    """Normaliza um texto livre para agrupar de forma consistente.
+
+    Remove espaços e aplica case-insensitive: "Caixa 1" e "caixa1" viram a
+    mesma chave de agrupamento. O rótulo exibido é o valor original mais comum.
+    """
+    if not raw:
+        return None
+    return re.sub(r"\s+", "", raw.strip()).lower()
+
+
+def _agrupar_dimensao(placas, cliques_por_placa, extrair, rotulo_vazio: str):
+    """Agrupa placas por um campo de dimensão normalizado.
+
+    O label exibido é o valor original mais comum entre as placas do grupo.
+    """
+    grupos = {}  # chave -> {"frente","verso","total","contagens": Counter}
+    for placa in placas:
+        raw = extrair(placa)
+        chave = _normalizar_dimensao(raw)
+        if chave is None:
+            chave = "__vazio__"
+            raw = rotulo_vazio
+        grupo = grupos.setdefault(
+            chave, {"frente": 0, "verso": 0, "total": 0, "contagens": Counter()}
+        )
+        grupo["contagens"][raw if raw else rotulo_vazio] += 1
+        frente, verso = cliques_por_placa.get(placa.id_placa, (0, 0))
+        grupo["frente"] += frente
+        grupo["verso"] += verso
+        grupo["total"] += frente + verso
+
+    resultado = []
+    for grupo in grupos.values():
+        label = grupo["contagens"].most_common(1)[0][0]
+        resultado.append(InsightGrupo(label=label, frente=grupo["frente"], verso=grupo["verso"], total=grupo["total"]))
+    resultado.sort(key=lambda g: (-g.total, g.label.lower()))
+    return resultado
+
+
+@app.get("/api/admin/dashboard/insights", response_model=InsightsResponse)
+def obter_insights(
+    periodo_dias: int = Query(30, description="Janela em dias (0 = todo o histórico)."),
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retorna agregações por dispositivo, unidade, local e responsável para o período."""
+    placas = db.query(Placa).filter(Placa.dono_documento == current_user.documento).all()
+    plate_ids = [p.id_placa for p in placas]
+
+    vazio = InsightsResponse(
+        periodo_dias=(periodo_dias if periodo_dias > 0 else None),
+        total_cliques=0,
+    )
+    if not plate_ids:
+        return vazio
+
+    inicio = None
+    if periodo_dias and periodo_dias > 0:
+        inicio = datetime.combine(date.today() - timedelta(days=periodo_dias - 1), datetime.min.time())
+
+    consulta = db.query(
+        HistoricoClique.id_placa, HistoricoClique.lado, func.count().label("n")
+    ).filter(HistoricoClique.id_placa.in_(plate_ids))
+    if inicio:
+        consulta = consulta.filter(HistoricoClique.data_hora >= inicio)
+    linhas = consulta.group_by(HistoricoClique.id_placa, HistoricoClique.lado).all()
+
+    cliques_por_placa = {}
+    for id_placa, lado, n in linhas:
+        frente, verso = cliques_por_placa.setdefault(id_placa, [0, 0])
+        if lado == "Frente":
+            frente += n
+        elif lado == "Verso":
+            verso += n
+        cliques_por_placa[id_placa] = [frente, verso]
+
+    dispositivos = []
+    for placa in placas:
+        frente, verso = cliques_por_placa.get(placa.id_placa, (0, 0))
+        dispositivos.append(
+            InsightDispositivo(
+                id_placa=placa.id_placa,
+                nome_exibicao=placa.nome_exibicao,
+                loja_unidade=placa.loja_unidade,
+                local_uso=placa.local_uso,
+                responsavel=placa.responsavel,
+                frente=frente,
+                verso=verso,
+                total=frente + verso,
+            )
+        )
+    dispositivos.sort(key=lambda d: (-d.total, d.id_placa))
+
+    unidades = _agrupar_dimensao(placas, cliques_por_placa, lambda p: p.loja_unidade, "Sem unidade")
+    locais = _agrupar_dimensao(placas, cliques_por_placa, lambda p: p.local_uso, "Sem local")
+    responsaveis = _agrupar_dimensao(placas, cliques_por_placa, lambda p: p.responsavel, "Sem responsável")
+
+    return InsightsResponse(
+        periodo_dias=(periodo_dias if periodo_dias > 0 else None),
+        total_cliques=sum(c[0] + c[1] for c in cliques_por_placa.values()),
+        melhor_dispositivo=dispositivos[0] if dispositivos else None,
+        melhor_unidade=unidades[0] if unidades else None,
+        melhor_local=locais[0] if locais else None,
+        melhor_responsavel=responsaveis[0] if responsaveis else None,
+        dispositivos=dispositivos,
+        unidades=unidades,
+        locais=locais,
+        responsaveis=responsaveis,
     )
 
 # ==================== ROTAS EXCLUSIVAS DO SUPERADMIN ====================

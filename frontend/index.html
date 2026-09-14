@@ -161,6 +161,77 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Análises por unidade, local e responsável -->
+            <section id="insights-section" class="insights-section">
+                <div class="section-header">
+                    <h2>Análises</h2>
+                    <p>Descubra o que está performando melhor por unidade, local e responsável.</p>
+                </div>
+
+                <div class="insights-controls glass">
+                    <div class="period-chips" id="insights-period-chips">
+                        <button type="button" class="chip" data-periodo="7">7 dias</button>
+                        <button type="button" class="chip active" data-periodo="30">30 dias</button>
+                        <button type="button" class="chip" data-periodo="0">Tudo</button>
+                    </div>
+                    <div class="unidade-filter">
+                        <label for="insights-unidade-filter"><i class="fa-solid fa-store"></i> Unidade</label>
+                        <select id="insights-unidade-filter">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="insights-kpis">
+                    <div class="insights-kpi">
+                        <span class="kpi-tag"><i class="fa-solid fa-hand-pointer"></i> Total de acessos</span>
+                        <strong id="insights-kpi-total">0</strong>
+                        <span class="kpi-sub" id="insights-kpi-periodo">últimos 30 dias</span>
+                    </div>
+                    <div class="insights-kpi">
+                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor dispositivo</span>
+                        <strong id="insights-kpi-device">-</strong>
+                        <span class="kpi-sub">mais acessado no período</span>
+                    </div>
+                    <div class="insights-kpi">
+                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor local</span>
+                        <strong id="insights-kpi-local">-</strong>
+                        <span class="kpi-sub">mais acessado no período</span>
+                    </div>
+                    <div class="insights-kpi">
+                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor responsável</span>
+                        <strong id="insights-kpi-responsavel">-</strong>
+                        <span class="kpi-sub">mais acessos no período</span>
+                    </div>
+                </div>
+
+                <div class="insights-tabs glass" id="insights-tabs">
+                    <button type="button" class="tab active" data-tab="dispositivos">Dispositivos</button>
+                    <button type="button" class="tab" data-tab="unidades">Unidades</button>
+                    <button type="button" class="tab" data-tab="locais">Locais</button>
+                    <button type="button" class="tab" data-tab="responsaveis">Responsáveis</button>
+                </div>
+
+                <div class="insights-body">
+                    <div class="insights-card glass">
+                        <div class="insights-card-header">
+                            <h3><i class="fa-solid fa-ranking-star rank-icon"></i> Ranking <span class="rank-category" id="insights-rank-category">Top 5 Dispositivos</span></h3>
+                        </div>
+                        <ol id="insights-ranking" class="ranking-list">
+                            <li class="ranking-empty"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</li>
+                        </ol>
+                    </div>
+                    <div class="insights-card glass">
+                        <div class="insights-card-header">
+                            <h3><i class="fa-solid fa-chart-column"></i> Comparativo</h3>
+                        </div>
+                        <div class="insights-chart-wrapper">
+                            <canvas id="insightsBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -303,6 +374,6 @@
     </div>
 
     <!-- Script Principal -->
-    <script src="js/app.js?v=11"></script>
+    <script src="js/app.js?v=12"></script>
 </body>
 </html>

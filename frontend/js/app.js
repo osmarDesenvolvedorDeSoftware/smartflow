@@ -7,6 +7,13 @@ let clicksHistoryChart = null;
 let clicksDistributionChart = null;
 let latestDashboardStats = null;
 let adminPlatesCache = [];
+
+let latestInsights = null;
+let insightsPeriodo = 30;
+let insightsUnidade = "";
+let insightsTab = "dispositivos";
+let insightsBarChart = null;
+
 const DEVICE_TYPES = ["display", "cartao", "tag", "pulseira", "outro"];
 
 function normalizeOptional(value) {
@@ -186,6 +193,38 @@ function setupEventListeners() {
     if (formVinculo) {
         formVinculo.addEventListener("submit", handleVincularDispositivo);
     }
+
+    // Chips de período das análises
+    const periodChips = document.getElementById("insights-period-chips");
+    if (periodChips) {
+        periodChips.addEventListener("click", (e) => {
+            const chip = e.target.closest(".chip");
+            if (!chip) return;
+            insightsPeriodo = Number(chip.dataset.periodo);
+            periodChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+            loadInsights();
+        });
+    }
+
+    // Filtro de unidade das análises
+    const unidadeFilter = document.getElementById("insights-unidade-filter");
+    if (unidadeFilter) {
+        unidadeFilter.addEventListener("change", () => {
+            insightsUnidade = unidadeFilter.value;
+            renderInsights();
+        });
+    }
+
+    // Abas das análises
+    const insightsTabs = document.getElementById("insights-tabs");
+    if (insightsTabs) {
+        insightsTabs.addEventListener("click", (e) => {
+            const tab = e.target.closest(".tab");
+            if (!tab) return;
+            insightsTab = tab.dataset.tab;
+            renderInsights();
+        });
+    }
 }
 
 // Lógica de Login
@@ -292,6 +331,7 @@ async function loadDashboardData() {
         updateMetrics(statsData);
         renderCharts(statsData);
         renderPlatesGrid(placasData);
+        loadInsights();
 
     } catch (err) {
         console.error("Erro ao carregar dados do painel:", err);
@@ -312,6 +352,255 @@ function updateMetrics(stats) {
     document.getElementById("stat-total-plates").textContent = stats.total_placas;
     document.getElementById("stat-total-clicks").textContent = stats.total_cliques;
     document.getElementById("stat-today-clicks").textContent = stats.cliques_hoje;
+}
+
+// ===== ANÁLISES (INSIGHTS) =====
+function normDimension(value) {
+    return String(value ?? "").replace(/\s+/g, "").toLowerCase();
+}
+
+function deviceInsightLabel(device) {
+    const custom = normalizeOptional(device.nome_exibicao);
+    return custom || placaCode(device.id_placa);
+}
+
+function insightsPeriodLabel(dias) {
+    const n = Number(dias);
+    if (!n || n <= 0) return "todo o histórico";
+    return `últimos ${n} dias`;
+}
+
+function groupInsightDevices(devices, field, fallback) {
+    const buckets = new Map();
+    devices.forEach((device) => {
+        const raw = device[field];
+        const key = normDimension(raw) || "__vazio__";
+        const label = raw ? raw.toString() : fallback;
+        let bucket = buckets.get(key);
+        if (!bucket) {
+            bucket = { label, frente: 0, verso: 0, total: 0, counts: {} };
+            buckets.set(key, bucket);
+        }
+        bucket.counts[label] = (bucket.counts[label] || 0) + 1;
+        bucket.frente += device.frente || 0;
+        bucket.verso += device.verso || 0;
+        bucket.total += device.total || 0;
+    });
+
+    const groups = [];
+    buckets.forEach((bucket) => {
+        let best = null;
+        let bestCount = 0;
+        Object.keys(bucket.counts).forEach((candidate) => {
+            if (bucket.counts[candidate] > bestCount) {
+                bestCount = bucket.counts[candidate];
+                best = candidate;
+            }
+        });
+        groups.push({ label: best || fallback, frente: bucket.frente, verso: bucket.verso, total: bucket.total });
+    });
+    groups.sort((a, b) => (b.total - a.total) || String(a.label).localeCompare(String(b.label)));
+    return groups;
+}
+
+async function loadInsights() {
+    const token = localStorage.getItem("nfc_token");
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/dashboard/insights?periodo_dias=${insightsPeriodo}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            handleLogout();
+            return;
+        }
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.detail || "Erro ao carregar as análises.");
+        }
+        latestInsights = data;
+        populateUnidadeFilter();
+        renderInsights();
+    } catch (err) {
+        console.error("Erro ao carregar análises:", err);
+        const list = document.getElementById("insights-ranking");
+        if (list) {
+            list.innerHTML = `<li class="ranking-empty"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(err.message)}</li>`;
+        }
+    }
+}
+
+function populateUnidadeFilter() {
+    const select = document.getElementById("insights-unidade-filter");
+    if (!select || !latestInsights) return;
+    const seen = new Map();
+    latestInsights.dispositivos.forEach((device) => {
+        if (!device.loja_unidade) return;
+        const key = normDimension(device.loja_unidade);
+        if (!seen.has(key)) seen.set(key, device.loja_unidade.toString());
+    });
+
+    select.innerHTML = `<option value="">Todas</option>` +
+        Array.from(seen.values())
+            .sort((a, b) => a.localeCompare(b))
+            .map((label) => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`)
+            .join("");
+
+    const stillExists = Array.from(select.options).some((option) => option.value === insightsUnidade);
+    if (stillExists) {
+        select.value = insightsUnidade;
+    } else {
+        insightsUnidade = "";
+        select.value = "";
+    }
+}
+
+function appliedInsights() {
+    if (!latestInsights) return null;
+
+    let devices = latestInsights.dispositivos;
+    let unidades = latestInsights.unidades;
+    let locais = latestInsights.locais;
+    let responsaveis = latestInsights.responsaveis;
+
+    if (insightsUnidade) {
+        const uv = normDimension(insightsUnidade);
+        devices = devices.filter((d) => normDimension(d.loja_unidade) === uv);
+        unidades = groupInsightDevices(devices, "loja_unidade", "Sem unidade");
+        locais = groupInsightDevices(devices, "local_uso", "Sem local");
+        responsaveis = groupInsightDevices(devices, "responsavel", "Sem responsável");
+    }
+
+    return {
+        devices,
+        unidades,
+        locais,
+        responsaveis,
+        total: devices.reduce((s, d) => s + (d.total || 0), 0)
+    };
+}
+
+const INSIGHTS_TAB_LABELS = {
+    dispositivos: "Dispositivos",
+    unidades: "Unidades",
+    locais: "Locais",
+    responsaveis: "Responsáveis"
+};
+
+function currentInsightGroups(view) {
+    if (insightsTab === "dispositivos") {
+        return view.devices
+            .slice()
+            .sort((a, b) => (b.total || 0) - (a.total || 0))
+            .map((d) => ({ label: deviceInsightLabel(d), frente: d.frente, verso: d.verso, total: d.total || 0 }));
+    }
+    if (insightsTab === "unidades") return view.unidades;
+    if (insightsTab === "locais") return view.locais;
+    return view.responsaveis;
+}
+
+function renderInsights() {
+    const view = appliedInsights();
+    if (!view) return;
+
+    const periodoEl = document.getElementById("insights-kpi-periodo");
+    if (periodoEl) periodoEl.textContent = insightsPeriodLabel(insightsPeriodo);
+
+    document.getElementById("insights-kpi-total").textContent = view.total;
+
+    const melhorDispositivo = view.devices.length
+        ? view.devices.slice().sort((a, b) => (b.total || 0) - (a.total || 0))[0]
+        : null;
+    document.getElementById("insights-kpi-device").textContent = melhorDispositivo ? deviceInsightLabel(melhorDispositivo) : "-";
+    document.getElementById("insights-kpi-local").textContent = view.locais.length ? view.locais[0].label : "-";
+    document.getElementById("insights-kpi-responsavel").textContent = view.responsaveis.length ? view.responsaveis[0].label : "-";
+
+    const groups = currentInsightGroups(view);
+    renderInsightsRanking(groups);
+    renderInsightsChart(groups);
+
+    document.querySelectorAll("#insights-tabs .tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.tab === insightsTab);
+    });
+    const category = document.getElementById("insights-rank-category");
+    if (category) category.textContent = `Top 5 ${INSIGHTS_TAB_LABELS[insightsTab]}`;
+}
+
+function renderInsightsRanking(groups) {
+    const list = document.getElementById("insights-ranking");
+    if (!list) return;
+
+    if (!groups.length) {
+        list.innerHTML = `<li class="ranking-empty"><i class="fa-solid fa-chart-line"></i> Sem acessos no período.</li>`;
+        return;
+    }
+
+    const top = groups.slice(0, 5);
+    const max = Math.max(...top.map((g) => g.total)) || 1;
+    list.innerHTML = top.map((g, i) => `
+        <li class="ranking-item">
+            <span class="ranking-pos${i === 0 ? " first" : ""}">${i + 1}</span>
+            <div class="ranking-info">
+                <span class="ranking-label" title="${escapeHtml(g.label)}">${escapeHtml(g.label)}</span>
+                <div class="ranking-bar"><span style="width: ${Math.max(6, Math.round((g.total / max) * 100))}%"></span></div>
+            </div>
+            <strong class="ranking-total">${g.total}</strong>
+        </li>`).join("");
+}
+
+function renderInsightsChart(groups) {
+    const canvas = document.getElementById("insightsBarChart");
+    if (!canvas) return;
+    if (insightsBarChart) {
+        insightsBarChart.destroy();
+        insightsBarChart = null;
+    }
+    if (!groups.length) return;
+
+    const top = groups.slice(0, 5);
+    insightsBarChart = new Chart(canvas.getContext("2d"), {
+        type: "bar",
+        data: {
+            labels: top.map((g) => g.label),
+            datasets: [{
+                label: "Acessos",
+                data: top.map((g) => g.total),
+                borderColor: "#06b6d4",
+                backgroundColor: "rgba(6, 182, 212, 0.72)",
+                borderWidth: 0,
+                borderRadius: 8,
+                maxBarThickness: 34
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.95)",
+                    titleFont: { family: "Outfit", size: 13, weight: "bold" },
+                    bodyFont: { family: "Outfit", size: 13 },
+                    borderColor: "rgba(255, 255, 255, 0.1)",
+                    borderWidth: 1,
+                    padding: 12
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: "rgba(15, 23, 42, 0.06)" },
+                    ticks: { color: "#475569", precision: 0, font: { family: "Outfit" } },
+                    min: 0
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: "#475569", font: { family: "Outfit" } }
+                }
+            }
+        }
+    });
 }
 
 // Formatar data em string amigável (Ex: "Ter, 19 Mai")
