@@ -11,7 +11,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style -->
-    <link rel="stylesheet" href="css/styles.css?v=5">
+    <link rel="stylesheet" href="css/styles.css?v=6">
 </head>
 <body>
     <div class="glow-container">
@@ -177,36 +177,50 @@
                     </div>
                     <div class="unidade-filter">
                         <label for="insights-unidade-filter"><i class="fa-solid fa-store"></i> Unidade</label>
-                        <select id="insights-unidade-filter">
-                            <option value="">Todas</option>
-                        </select>
+                        <div class="form-select-wrapper">
+                            <select id="insights-unidade-filter">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="insights-kpis">
-                    <div class="insights-kpi">
-                        <span class="kpi-tag"><i class="fa-solid fa-hand-pointer"></i> Total de acessos</span>
-                        <strong id="insights-kpi-total">0</strong>
-                        <span class="kpi-sub" id="insights-kpi-periodo">últimos 30 dias</span>
+                    <div class="metric-card glass">
+                        <div class="metric-icon bg-cyan"><i class="fa-solid fa-hand-pointer"></i></div>
+                        <div class="metric-data">
+                            <h3 id="insights-kpi-total">0</h3>
+                            <p>Total de acessos</p>
+                            <span class="insights-kpi-period" id="insights-kpi-periodo">últimos 30 dias</span>
+                        </div>
                     </div>
-                    <div class="insights-kpi">
-                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor dispositivo</span>
-                        <strong id="insights-kpi-device">-</strong>
-                        <span class="kpi-sub">mais acessado no período</span>
+                    <div class="metric-card glass">
+                        <div class="metric-icon bg-purple"><i class="fa-solid fa-tablet-screen-button"></i></div>
+                        <div class="metric-data">
+                            <h3 class="insights-kpi-name" id="insights-kpi-device">—</h3>
+                            <p>Melhor dispositivo</p>
+                            <span class="insights-kpi-period">mais acessado no período</span>
+                        </div>
                     </div>
-                    <div class="insights-kpi">
-                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor local</span>
-                        <strong id="insights-kpi-local">-</strong>
-                        <span class="kpi-sub">mais acessado no período</span>
+                    <div class="metric-card glass">
+                        <div class="metric-icon bg-emerald"><i class="fa-solid fa-location-dot"></i></div>
+                        <div class="metric-data">
+                            <h3 class="insights-kpi-name" id="insights-kpi-local">—</h3>
+                            <p>Melhor local</p>
+                            <span class="insights-kpi-period">mais acessado no período</span>
+                        </div>
                     </div>
-                    <div class="insights-kpi">
-                        <span class="kpi-tag"><i class="fa-solid fa-crown"></i> Melhor responsável</span>
-                        <strong id="insights-kpi-responsavel">-</strong>
-                        <span class="kpi-sub">mais acessos no período</span>
+                    <div class="metric-card glass">
+                        <div class="metric-icon bg-rose"><i class="fa-solid fa-user-check"></i></div>
+                        <div class="metric-data">
+                            <h3 class="insights-kpi-name" id="insights-kpi-responsavel">—</h3>
+                            <p>Melhor responsável</p>
+                            <span class="insights-kpi-period">mais acessos no período</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="insights-tabs glass" id="insights-tabs">
+                <div class="insights-tabs" id="insights-tabs">
                     <button type="button" class="tab active" data-tab="dispositivos">Dispositivos</button>
                     <button type="button" class="tab" data-tab="unidades">Unidades</button>
                     <button type="button" class="tab" data-tab="locais">Locais</button>
@@ -216,18 +230,26 @@
                 <div class="insights-body">
                     <div class="insights-card glass">
                         <div class="insights-card-header">
-                            <h3><i class="fa-solid fa-ranking-star rank-icon"></i> Ranking <span class="rank-category" id="insights-rank-category">Top 5 Dispositivos</span></h3>
+                            <h3><i class="fa-solid fa-ranking-star"></i> Ranking <span class="rank-category" id="insights-rank-category">Top 5 Dispositivos</span></h3>
                         </div>
                         <ol id="insights-ranking" class="ranking-list">
-                            <li class="ranking-empty"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</li>
+                            <li class="ranking-loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Carregando análises...</span></li>
                         </ol>
+                        <div id="insights-ranking-empty" class="empty-state insights-empty hidden">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <h4>Sem dados no período</h4>
+                            <p>Os acessos aparecem aqui assim que houver registros.</p>
+                        </div>
                     </div>
                     <div class="insights-card glass">
                         <div class="insights-card-header">
                             <h3><i class="fa-solid fa-chart-column"></i> Comparativo</h3>
                         </div>
-                        <div class="insights-chart-wrapper">
-                            <canvas id="insightsBarChart"></canvas>
+                        <canvas id="insightsBarChart" class="insights-chart-wrapper hidden"></canvas>
+                        <div id="insights-chart-empty" class="empty-state insights-empty hidden">
+                            <i class="fa-solid fa-chart-column"></i>
+                            <h4>Sem dados no período</h4>
+                            <p>O comparativo é preenchido conforme os acessos acontecem.</p>
                         </div>
                     </div>
                 </div>
@@ -374,6 +396,6 @@
     </div>
 
     <!-- Script Principal -->
-    <script src="js/app.js?v=12"></script>
+    <script src="js/app.js?v=13"></script>
 </body>
 </html>

@@ -425,8 +425,14 @@ async function loadInsights() {
     } catch (err) {
         console.error("Erro ao carregar análises:", err);
         const list = document.getElementById("insights-ranking");
-        if (list) {
-            list.innerHTML = `<li class="ranking-empty"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(err.message)}</li>`;
+        const emptyEl = document.getElementById("insights-ranking-empty");
+        if (list) list.classList.add("hidden");
+        if (emptyEl) {
+            emptyEl.classList.remove("hidden");
+            const h4 = emptyEl.querySelector("h4");
+            const p = emptyEl.querySelector("p");
+            if (h4) h4.textContent = "Não foi possível carregar";
+            if (p) p.textContent = err.message;
         }
     }
 }
@@ -512,9 +518,9 @@ function renderInsights() {
     const melhorDispositivo = view.devices.length
         ? view.devices.slice().sort((a, b) => (b.total || 0) - (a.total || 0))[0]
         : null;
-    document.getElementById("insights-kpi-device").textContent = melhorDispositivo ? deviceInsightLabel(melhorDispositivo) : "-";
-    document.getElementById("insights-kpi-local").textContent = view.locais.length ? view.locais[0].label : "-";
-    document.getElementById("insights-kpi-responsavel").textContent = view.responsaveis.length ? view.responsaveis[0].label : "-";
+    document.getElementById("insights-kpi-device").textContent = melhorDispositivo ? deviceInsightLabel(melhorDispositivo) : "—";
+    document.getElementById("insights-kpi-local").textContent = view.locais.length ? view.locais[0].label : "—";
+    document.getElementById("insights-kpi-responsavel").textContent = view.responsaveis.length ? view.responsaveis[0].label : "—";
 
     const groups = currentInsightGroups(view);
     renderInsightsRanking(groups);
@@ -529,12 +535,13 @@ function renderInsights() {
 
 function renderInsightsRanking(groups) {
     const list = document.getElementById("insights-ranking");
-    if (!list) return;
+    const emptyEl = document.getElementById("insights-ranking-empty");
+    if (!list || !emptyEl) return;
 
-    if (!groups.length) {
-        list.innerHTML = `<li class="ranking-empty"><i class="fa-solid fa-chart-line"></i> Sem acessos no período.</li>`;
-        return;
-    }
+    const hasData = groups.length > 0;
+    list.classList.toggle("hidden", !hasData);
+    emptyEl.classList.toggle("hidden", hasData);
+    if (!hasData) return;
 
     const top = groups.slice(0, 5);
     const max = Math.max(...top.map((g) => g.total)) || 1;
@@ -551,12 +558,17 @@ function renderInsightsRanking(groups) {
 
 function renderInsightsChart(groups) {
     const canvas = document.getElementById("insightsBarChart");
-    if (!canvas) return;
+    const emptyEl = document.getElementById("insights-chart-empty");
+    if (!canvas || !emptyEl) return;
     if (insightsBarChart) {
         insightsBarChart.destroy();
         insightsBarChart = null;
     }
-    if (!groups.length) return;
+
+    const hasData = groups.length > 0;
+    canvas.classList.toggle("hidden", !hasData);
+    emptyEl.classList.toggle("hidden", hasData);
+    if (!hasData) return;
 
     const top = groups.slice(0, 5);
     insightsBarChart = new Chart(canvas.getContext("2d"), {

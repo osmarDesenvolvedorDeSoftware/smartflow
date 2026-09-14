@@ -1364,28 +1364,29 @@ input:checked + .slider:before {
     margin-bottom: 48px;
 }
 
+/* Barra de filtros: período + unidade */
 .insights-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 16px 20px;
-    border-radius: 16px;
-    margin-bottom: 24px;
+    gap: 16px 24px;
+    padding: 18px 24px;
+    border-radius: 20px;
+    margin-bottom: 28px;
 }
 
 .period-chips {
     display: flex;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 8px;
 }
 
 .chip {
     background: rgba(255, 255, 255, 0.55);
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    padding: 8px 16px;
+    padding: 9px 18px;
     font-family: var(--font-sans);
     font-size: 13px;
     font-weight: 600;
@@ -1397,6 +1398,7 @@ input:checked + .slider:before {
 .chip:hover {
     border-color: var(--color-cyan);
     color: var(--color-cyan);
+    background: rgba(8, 145, 178, 0.06);
 }
 
 .chip.active {
@@ -1409,92 +1411,88 @@ input:checked + .slider:before {
 .unidade-filter {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .unidade-filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
 }
 
-.unidade-filter select {
-    border: 1px solid var(--border-color);
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 8px 12px;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--text-primary);
-    outline: none;
-    min-width: 150px;
-}
-
-.unidade-filter select:focus {
-    border-color: var(--color-cyan);
-}
-
-.insights-kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.insights-kpi {
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 18px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    backdrop-filter: blur(12px);
-}
-
-.insights-kpi .kpi-tag {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-}
-
-.insights-kpi .kpi-tag i {
+.unidade-filter label i {
     color: var(--color-cyan);
 }
 
-.insights-kpi strong {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--color-ink);
-    line-height: 1.2;
+.unidade-filter .form-select-wrapper select {
+    min-width: 168px;
+    padding-right: 34px;
+    font-weight: 500;
+}
+
+/* KPIs no mesmo padrão dos cards do dashboard */
+.insights-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.insights-kpis .metric-card {
+    padding: 20px 22px;
+    gap: 16px;
+}
+
+.insights-kpis .metric-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+
+.insights-kpi-name {
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 100%;
 }
 
-.insights-kpi .kpi-sub {
-    font-size: 12px;
-    color: var(--text-secondary);
+.insights-kpi-period {
+    display: block;
+    margin-top: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-muted);
 }
 
+.bg-rose {
+    background: linear-gradient(135deg, #e11d48, #fb7185);
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.2);
+}
+
+/* Abas de dimensão (estilo aba real com underline) */
 .insights-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px;
-    border-radius: 16px;
+    gap: 4px;
+    padding: 0 8px;
+    border-bottom: 2px solid var(--border-color);
     margin-bottom: 24px;
-    width: fit-content;
-    max-width: 100%;
 }
 
 .insights-tabs .tab {
     border: none;
     background: transparent;
-    padding: 10px 18px;
-    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: -2px;
+    border-bottom: 2px solid transparent;
+    border-radius: 10px 10px 0 0;
     font-family: var(--font-sans);
     font-size: 14px;
     font-weight: 600;
@@ -1505,17 +1503,21 @@ input:checked + .slider:before {
 
 .insights-tabs .tab:hover {
     color: var(--color-cyan);
+    background: rgba(8, 145, 178, 0.05);
 }
 
 .insights-tabs .tab.active {
-    background: rgba(8, 145, 178, 0.12);
     color: var(--color-cyan);
+    border-bottom-color: var(--color-cyan);
+    background: rgba(8, 145, 178, 0.08);
 }
 
+/* Cards: Ranking Top 5 e Comparativo */
 .insights-body {
     display: grid;
-    grid-template-columns: 1fr 1.4fr;
+    grid-template-columns: 1fr 1.3fr;
     gap: 24px;
+    align-items: stretch;
 }
 
 @media (max-width: 900px) {
@@ -1527,6 +1529,8 @@ input:checked + .slider:before {
 .insights-card {
     border-radius: 20px;
     padding: 24px;
+    display: flex;
+    flex-direction: column;
 }
 
 .insights-card-header {
@@ -1542,7 +1546,7 @@ input:checked + .slider:before {
     flex-wrap: wrap;
 }
 
-.rank-icon {
+.insights-card-header h3 > i {
     color: var(--color-cyan);
 }
 
@@ -1554,6 +1558,7 @@ input:checked + .slider:before {
     padding: 4px 12px;
     border-radius: 20px;
     margin-left: auto;
+    white-space: nowrap;
 }
 
 .ranking-list {
@@ -1561,6 +1566,24 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 1;
+}
+
+.ranking-loading {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.ranking-loading i {
+    font-size: 24px;
+    color: var(--color-cyan);
 }
 
 .ranking-item {
@@ -1628,19 +1651,39 @@ input:checked + .slider:before {
     text-align: right;
 }
 
-.ranking-empty {
-    color: var(--text-secondary);
-    font-size: 14px;
-    text-align: center;
-    padding: 24px 0;
-    list-style: none;
+/* Empty states refinados das análises */
+.insights-empty {
+    flex: 1;
+    min-height: 220px;
+    padding: 40px 24px;
 }
 
-.ranking-empty i {
-    margin-right: 6px;
+.insights-empty i {
+    font-size: 34px;
+    color: var(--color-cyan);
+    opacity: 0.75;
 }
 
+.insights-empty h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.insights-empty p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 260px;
+}
+
+/* Gráfico comparativo */
 .insights-chart-wrapper {
     height: 300px;
     position: relative;
+    flex: 1;
+}
+
+/* Garante que o utilitário hidden sempre sobreponha o display de componentes */
+.hidden {
+    display: none !important;
 }
