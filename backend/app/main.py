@@ -566,12 +566,16 @@ class PixGenerateRequest(BaseModel):
 
 # ==================== ROTAS DE REDIRECIONAMENTO PÚBLICAS ====================
 
+def placa_code(id_placa: int) -> str:
+    """Código visual ODS-XXXX exibido no verso da placa e no painel."""
+    return f"ODS-{id_placa:04d}"
+
 @app.get("/r/{id_placa}/frente")
 def redirect_frente(id_placa: int, db: Session = Depends(get_db)):
     """Registra o clique e redireciona para o link da Frente (Google Maps/Avaliação)"""
     placa = db.query(Placa).filter(Placa.id_placa == id_placa).first()
     if not placa:
-        return render_error_page("Dispositivo não encontrado", f"O dispositivo OsmarDev Store ID {id_placa} não está cadastrado em nosso sistema.")
+        return render_error_page("Dispositivo não encontrado", f"O dispositivo {placa_code(id_placa)} não está cadastrado em nosso sistema.")
 
     if not placa.status_ativa:
         return render_blocked_page(id_placa)
@@ -591,7 +595,7 @@ def redirect_verso(id_placa: int, db: Session = Depends(get_db)):
     """Registra o clique e exibe a tela de pagamento Pix ou redireciona para o link do Verso (Cardápio)."""
     placa = db.query(Placa).filter(Placa.id_placa == id_placa).first()
     if not placa:
-        return render_error_page("Dispositivo não encontrado", f"O dispositivo OsmarDev Store ID {id_placa} não está cadastrado em nosso sistema.")
+        return render_error_page("Dispositivo não encontrado", f"O dispositivo {placa_code(id_placa)} não está cadastrado em nosso sistema.")
 
     if not placa.status_ativa:
         return render_blocked_page(id_placa)

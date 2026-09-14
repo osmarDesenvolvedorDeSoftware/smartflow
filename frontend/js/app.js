@@ -31,9 +31,13 @@ function escapeHtml(value) {
         .replace(/'/g, "&#039;");
 }
 
+function placaCode(id) {
+    return "ODS-" + String(id).padStart(4, "0");
+}
+
 function deviceDisplayName(device) {
     const custom = normalizeOptional(device.nome_exibicao);
-    return custom || `Dispositivo #${device.id_placa}`;
+    return custom || `Dispositivo ${placaCode(device.id_placa)}`;
 }
 
 function deviceTypeLabel(device) {
@@ -477,7 +481,7 @@ function renderPlatesGrid(dispositivos) {
                 <span class="status-pill ${dispositivo.status_ativa ? "active" : "suspended"}">${statusLabel}</span>
             </div>
             <h3>${escapeHtml(friendlyName)}</h3>
-            <p>ID físico #${dispositivo.id_placa}</p>
+            <p>Código ${placaCode(dispositivo.id_placa)}</p>
             <div class="device-destinations">
                 <div class="destination-row">
                     <span><i class="fa-brands fa-google"></i> ${escapeHtml(frenteLabel)}</span>
@@ -683,7 +687,7 @@ function openDeviceConfigModal(dispositivo, isAdmin) {
         <div class="device-modal" role="dialog" aria-modal="true" aria-labelledby="device-modal-title">
             <div class="modal-header">
                 <div>
-                    <span class="modal-kicker">Dispositivo OsmarDev Store #${dispositivo.id_placa}</span>
+                    <span class="modal-kicker">Código ${placaCode(dispositivo.id_placa)}</span>
                     <h2 id="device-modal-title">${escapeHtml(deviceDisplayName(dispositivo))}</h2>
                 </div>
                 <button type="button" class="modal-close" onclick="closeDeviceConfigModal()" aria-label="Fechar">
@@ -905,7 +909,7 @@ window.deleteAdminPlate = async function(idPlaca) {
     const token = localStorage.getItem("nfc_token");
     if (!token) return;
 
-    const confirma = confirm(`Excluir o dispositivo #${idPlaca}?\nO histórico de cliques também será apagado. Essa ação não pode ser desfeita.`);
+    const confirma = confirm(`Excluir o dispositivo ${placaCode(idPlaca)}?\nO histórico de cliques também será apagado. Essa ação não pode ser desfeita.`);
     if (!confirma) return;
 
     try {
@@ -957,7 +961,7 @@ function renderSuperTable(comerciantes) {
                 return `
                     <div class="admin-device-row">
                         <strong>${escapeHtml(nomeAmigavel)}</strong>
-                        <span>ID físico: #${placa.id_placa}</span>
+                        <span>Código: ${placaCode(placa.id_placa)}</span>
                         <span>Tipo: ${escapeHtml(tipo)}</span>
                         <span>Status: ${status}</span>
                         <div class="recording-links">
@@ -993,7 +997,7 @@ function renderSuperTable(comerciantes) {
                 const status = placa.status_ativa ? "Ativo" : "Suspenso";
                 return `
                     <div class="admin-status-row">
-                        <span>#${placa.id_placa}</span>
+                        <span>${placaCode(placa.id_placa)}</span>
                         <label class="switch">
                             <input type="checkbox" ${isChecked} onchange="togglePlateStatus(${placa.id_placa}, this.checked)">
                             <span class="slider"></span>
