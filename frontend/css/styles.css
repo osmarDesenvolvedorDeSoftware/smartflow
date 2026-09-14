@@ -747,6 +747,11 @@ header .logo small {
     color: #ccfbf1;
 }
 
+#vinculo-documento option {
+    background: #18181b;
+    color: #fff;
+}
+
 .btn-delete-plate,
 .btn-edit-plate {
     border-radius: 7px;

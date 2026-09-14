@@ -240,8 +240,10 @@
                         </div>
                         <form id="form-vincular-dispositivo" class="form-container" style="display: flex; flex-direction: column; gap: 16px;">
                             <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                                <label for="vinculo-documento" style="font-size: 13px; color: #a1a1aa;">Documento do comerciante</label>
-                                <input type="text" id="vinculo-documento" placeholder="CPF ou CNPJ" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                <label for="vinculo-documento" style="font-size: 13px; color: #a1a1aa;">Cliente</label>
+                                <select id="vinculo-documento" required autocomplete="off" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                    <option value="" selected>Selecione o cliente...</option>
+                                </select>
                             </div>
                             <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
                                 <label for="vinculo-placa" style="font-size: 13px; color: #a1a1aa;">Código do dispositivo</label>
@@ -301,6 +303,6 @@
     </div>
 
     <!-- Script Principal -->
-    <script src="js/app.js?v=10"></script>
+    <script src="js/app.js?v=11"></script>
 </body>
 </html>

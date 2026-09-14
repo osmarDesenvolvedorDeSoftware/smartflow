@@ -891,6 +891,7 @@ async function loadSuperAdminData() {
 
         adminPlatesCache = data.flatMap(comerciante => comerciante.placas || []);
         renderSuperTable(data);
+        populateClienteSelect(data);
     } catch (err) {
         console.error("Erro ao carregar dados do admin:", err);
     }
@@ -1058,6 +1059,21 @@ window.togglePlateStatus = async function(idPlaca, statusAtiva) {
         loadSuperAdminData();
     }
 };
+
+function populateClienteSelect(comerciantes) {
+    const select = document.getElementById("vinculo-documento");
+    if (!select) return;
+
+    const current = select.value;
+    select.innerHTML = `<option value="" selected>Selecione o cliente...</option>`;
+    comerciantes.forEach(comerciante => {
+        const opt = document.createElement("option");
+        opt.value = comerciante.documento;
+        opt.textContent = `${comerciante.nome_estabelecimento} (${comerciante.documento})${comerciante.ativo === false ? " - Inativo" : ""}`;
+        select.appendChild(opt);
+    });
+    if (current) select.value = current;
+}
 
 window.toggleClienteStatus = async function(documento, clienteAtivo, btn) {
     const token = localStorage.getItem("nfc_token");
