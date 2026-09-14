@@ -16,7 +16,7 @@ from .auth import verify_password, create_access_token, get_current_user, get_pa
 # Cria as tabelas se elas não existirem (garantia adicional, embora tenhamos o init.sql)
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Smart Flow API", description="Backend para gerenciamento e redirecionamento de dispositivos Smart Flow")
+app = FastAPI(title="OsmarDev Store API", description="Backend para gerenciamento e redirecionamento de dispositivos OsmarDev Store")
 
 # Configuração de CORS para permitir desenvolvimento local facilitado
 app.add_middleware(
@@ -102,7 +102,7 @@ def render_error_page(title: str, message: str) -> HTMLResponse:
             <span class="icon">⚠️</span>
             <h1>{title}</h1>
             <p>{message}</p>
-            <div class="logo">Smart Flow</div>
+            <div class="logo">OsmarDev Store</div>
         </div>
     </body>
     </html>
@@ -181,8 +181,8 @@ def render_blocked_page(id_placa: int) -> HTMLResponse:
         <div class="card">
             <span class="icon">🚫</span>
             <h1>Dispositivo Suspenso</h1>
-            <p>Este dispositivo Smart Flow está temporariamente suspenso para manutenção administrativa. Se você é o proprietário, entre em contato com o suporte.</p>
-            <div class="logo">Smart Flow</div>
+            <p>Este dispositivo OsmarDev Store está temporariamente suspenso para manutenção administrativa. Se você é o proprietário, entre em contato com o suporte.</p>
+            <div class="logo">OsmarDev Store</div>
         </div>
     </body>
     </html>
@@ -571,7 +571,7 @@ def redirect_frente(id_placa: int, db: Session = Depends(get_db)):
     """Registra o clique e redireciona para o link da Frente (Google Maps/Avaliação)"""
     placa = db.query(Placa).filter(Placa.id_placa == id_placa).first()
     if not placa:
-        return render_error_page("Dispositivo não encontrado", f"O dispositivo Smart Flow ID {id_placa} não está cadastrado em nosso sistema.")
+        return render_error_page("Dispositivo não encontrado", f"O dispositivo OsmarDev Store ID {id_placa} não está cadastrado em nosso sistema.")
 
     if not placa.status_ativa:
         return render_blocked_page(id_placa)
@@ -591,7 +591,7 @@ def redirect_verso(id_placa: int, db: Session = Depends(get_db)):
     """Registra o clique e exibe a tela de pagamento Pix ou redireciona para o link do Verso (Cardápio)."""
     placa = db.query(Placa).filter(Placa.id_placa == id_placa).first()
     if not placa:
-        return render_error_page("Dispositivo não encontrado", f"O dispositivo Smart Flow ID {id_placa} não está cadastrado em nosso sistema.")
+        return render_error_page("Dispositivo não encontrado", f"O dispositivo OsmarDev Store ID {id_placa} não está cadastrado em nosso sistema.")
 
     if not placa.status_ativa:
         return render_blocked_page(id_placa)

@@ -683,7 +683,7 @@ function openDeviceConfigModal(dispositivo, isAdmin) {
         <div class="device-modal" role="dialog" aria-modal="true" aria-labelledby="device-modal-title">
             <div class="modal-header">
                 <div>
-                    <span class="modal-kicker">Dispositivo Smart Flow #${dispositivo.id_placa}</span>
+                    <span class="modal-kicker">Dispositivo OsmarDev Store #${dispositivo.id_placa}</span>
                     <h2 id="device-modal-title">${escapeHtml(deviceDisplayName(dispositivo))}</h2>
                 </div>
                 <button type="button" class="modal-close" onclick="closeDeviceConfigModal()" aria-label="Fechar">
